@@ -1,0 +1,1 @@
+logcat -v time | grep BaRaw > /sdcard/log.txt&
