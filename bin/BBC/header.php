@@ -1,0 +1,1 @@
+<a href="./index.php">首頁</a> | <a href="./createProj.php">新增專案</a> | <a href="./deleteProj.php">刪除專案</a> | <a href="./createNote.php">新增註解</a> | <a href="./modifyNote.php">修改註解</a> | <a href="./deleteNote.php">刪除註解</a><br><br>
