@@ -1,0 +1,68 @@
+node {
+    try{
+        stage "fetch xx code"
+    
+        git url: "xxxxxx", branch: "6.07"
+        
+        def Build_num = "$BUILD_NUMBER" as Integer
+        env.forLog = "$BUILD_NUMBER"
+        if(Build_num < 10){
+           env.BUILD_NUMBER = '0' + "$BUILD_NUMBER"
+        }
+    
+        stage "clean build"
+            // env.ANDROID_NDK_HOME="/home/test/Android/Sdk/ndk-bundle"
+            env.BUILD_TYPE="Release"
+            sh "./gradlew clean"
+        
+        stage "assembleProductionRelease"
+            sh "./gradlew -PIS_JENKINS assembleProductionRelease"
+            
+        stage "apk reName"
+            def newName = "$JOB_NAME-no_$BUILD_NUMBER-versionCode_$VERSION_CODE-type_$BUILD_TYPE"+'.apk'
+            def oldName = 'xxxxxx-production-release.apk'
+            def apkfolder = pwd()+"/xxxxxx/build/outputs/apk/"
+            sh "mv " + apkfolder+ oldName + " " + apkfolder + newName
+            if (!fileExists('/data2/PG_Android/'+"$JOB_NAME")) {
+                sh 'mkdir /data2/PG_Android/'+"$JOB_NAME"
+            }
+            sh 'cp ' + apkfolder + newName + ' ' + "/data2/PG_Android/$JOB_NAME/" + newName
+            
+        stage "file size"
+            def folder = pwd() + "/xxxxxx/build/outputs/"
+            sh "mv " + folder+'mapping/production/release/mapping.txt ' + folder + "mapping/production/release/${JOB_NAME}_mapping_no_$BUILD_NUMBER-type_$BUILD_TYPE"+'.txt'
+            if (!fileExists('/data2/PG_Android/'+"$JOB_NAME/mapping")) {
+                sh 'mkdir /data2/PG_Android/'+"$JOB_NAME/mapping"
+            }
+            sh "tar -czvf /data2/PG_Android/$JOB_NAME/mapping/${JOB_NAME}_mapping_no_$BUILD_NUMBER-type_$BUILD_TYPE"+'.tgz ' + folder + "mapping/production/release/${JOB_NAME}_mapping_no_$BUILD_NUMBER-type_$BUILD_TYPE"+'.txt'
+            sh "mv " + folder+'dexcount/productionRelease.txt ' + folder + "dexcount/dexcount_no_$BUILD_NUMBER-type_$BUILD_TYPE"+'.txt'
+            def OUTFILE=folder + "/dexcount/apksize"+'.csv'
+            sh "echo filesize > "+ OUTFILE
+            sh "stat -c %s "+ apkfolder + newName + " >> " + OUTFILE
+            sh "stat -c %s "+ apkfolder + newName + " > apkSizeF"
+            def apkSize=readFile('apkSizeF').trim()
+            sh 'cp /home/test/Downloads/pgSizeToGoogleDoc.py .'
+            sh 'python pgSizeToGoogleDoc.py '+ newName + " " + apkSize + " $JOB_NAME"
+            archiveArtifacts 'xxxxxx/build/outputs/apk/*.apk'
+    }catch (e) {
+    // If there was an exception thrown, the build failed
+    notifyFailed(getBuildFailMessage())
+    currentBuild.result = 'FAILURE'
+  }
+    
+}
+
+def notifyFailed(e) {
+  mail bcc: '', body: """$JOB_NAME - $BUILD_NUMBER - Build Failed
+Please fix this issue.
+Details: ${BUILD_URL}console 
+$e""", cc: '', from: 'PG_Jenkins <qa.pg.tw@gmail.com>', replyTo: '', subject: """$JOB_NAME - $BUILD_NUMBER - Build Failed""", to: 'qa@aaaa.com'
+}
+
+def getBuildFailMessage(){
+    message = sh(
+        script: "cat /var/lib/jenkins/jobs/${JOB_NAME}/builds/${forLog}/log | grep -B 20 \"BUILD FAILED\"",
+        returnStdout: true
+    )
+    return message
+}
