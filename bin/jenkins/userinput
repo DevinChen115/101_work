@@ -1,0 +1,30 @@
+node{
+    stage 'promotion'
+    def version = input(
+     id: 'userInput', message: 'Which Vesrion?', parameters: [
+     [$class: 'ChoiceParameterDefinition', choices: getList("/data2/Android"), description: 'Version', name: 'version'],
+    ])
+    def apk = input(
+     id: 'userInput', message: 'Which file?', parameters: [
+     [$class: 'ChoiceParameterDefinition', choices: getList("/data2/Android/"+version), description: 'Version', name: 'apk'],
+    ])
+}
+// test = 'a\nb'
+// def userInput = input(
+//  id: 'userInput', message: 'Let\'s promote?', parameters: [
+//  [$class: 'ChoiceParameterDefinition', choices: test, description: 'Environment', name: 'env'],
+//  [$class: 'TextParameterDefinition', defaultValue: 'uat1', description: 'Target', name: 'target']
+// ])
+// echo ("Env: "+userInput['env'])
+// echo ("Target: "+userInput['target'])
+
+def getList(path){
+    sh "ls -r " + path + " > list.txt"
+    message = sh(
+        //script: "sh becomeOneLine.sh",
+        script: "cat list.txt",
+        returnStdout: true
+    )
+    //message = "\"" + message + "\""
+    return message
+}
