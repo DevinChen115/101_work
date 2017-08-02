@@ -1,0 +1,29 @@
+node {
+    stage "fetch PG code"
+        currentBuild.displayName = "$BRANCH"+"_#"+"$BUILD_NUMBER"
+        env.VERSION_CODE="0"
+        env.BUILD_TYPE="Release"
+        git url: "git@10.33.128.62:Android_Dev/PhotoGrid-Android.git", branch: "$BRANCH"
+    
+    stage "clean build"
+    
+        sh "./gradlew clean"
+    
+    
+    stage "infer"
+        sh "infer -- ./gradlew build"
+        sh "cp /home/test/Downloads/inferBugInfo.py ."
+        sh "python inferBugInfo.py"
+    
+    stage "assembleProductionRelease"
+        sh "./gradlew assembleProductionRelease"
+        
+    stage "apk reName"
+        def newName = "$JOB_NAME-QAServer-no_$BUILD_NUMBER-versionCode_$VERSION_CODE-type_$BUILD_TYPE"+'.apk'
+        def oldName = 'photoGrid-production-release.apk'
+        def folder = pwd()+"/photoGrid/build/outputs/apk/"
+        sh "mv " + folder+oldName + " " + folder+newName
+        archiveArtifacts 'photoGrid/build/outputs/apk/*.apk'
+
+}
+
