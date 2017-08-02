@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuite errors="0" failures="0" name="a.第一個在手機上的 bdd" skipped="0" tests="1" time="2.277626"><testcase classname="a.第一個在手機上的 bdd" name="點擊 ＋ 號" status="passed" time="2.277626"><system-out>
+<![CDATA[
+@scenario.begin
+  Scenario: 點擊 ＋ 號
+    Given PG 開啟 ... passed in 0.000s
+    When click "apps" ... passed in 1.071s
+    Then 我應該可以看到工具列 ... passed in 1.207s
+
+@scenario.end
+--------------------------------------------------------------------------------
+
+Captured stdout:
+a
+
+]]>
+</system-out></testcase></testsuite>
