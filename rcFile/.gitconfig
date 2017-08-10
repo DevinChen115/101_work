@@ -1,0 +1,11 @@
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	logNoMerge = log --no-merges
+[branch]
+    autosetuprebase = always
+[user]
+	email = yan.work.tw@gmail.com
+	name = yan
